@@ -34,6 +34,11 @@ def tip(game, pos):
     return {'distance':pos, 'lemma':word, 'word':word}
 
 
+@app.route('/en/top/<game>')
+def top(game):
+    return {'words': [w for w,em in word_embedding[:100]]}
+
+
 @app.route('/en/giveup/<game>')
 def giveup(game):
     pos = 0
@@ -44,8 +49,10 @@ def giveup(game):
 if __name__ == '__main__':
     df = pd.read_feather('.db')
     embeddings = {word:embedding for word,embedding in zip(df.word, df.embedding)}
-    j = randint(0, len(df)-1)
+    #j = randint(0, len(df)-1)
+    j = df[df.word=='helicopter'].index[0]
+    print(j)
     em = df.embedding[j]
     word_embedding = sorted([(w,e) for w,e in embeddings.items()], key=lambda kv:-cosine_similarity(em, kv[1]))
-    embeddings = {word:(i,embedding) for i,(word,embedding) in enumerate(word_embedding, 1)}
+    embeddings = {word:(i,embedding) for i,(word,embedding) in enumerate(word_embedding)}
     app.run(host='127.0.0.1', port=6060, debug=True, threaded=True)
